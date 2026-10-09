@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transcript</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23111214'/%3E%3Crect x='26' y='12' width='12' height='26' rx='6' fill='%23ececea'/%3E%3Cpath d='M18 30a14 14 0 0 0 28 0M32 44v8' fill='none' stroke='%23ececea' stroke-width='4' stroke-linecap='round'/%3E%3Ccircle cx='48' cy='16' r='5' fill='%23e9b35f'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after{ margin:0; padding:0; box-sizing:border-box; }
+
+  :root{
+    --bg:#111214;
+    --surface:#17181b;
+    --line:#26282c;
+    --text:#ececea;
+    --muted:#8d9097;
+    --amber:#e9b35f;
+    --danger:#e5645a;
+    --font:'Instrument Sans', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  }
+
+  html{ -webkit-text-size-adjust:100%; }
+
+  body{
+    font-family:var(--font);
+    background:var(--bg);
+    color:var(--text);
+    line-height:1.5;
+    min-height:100vh;
+    padding:0 clamp(20px, 5vw, 48px);
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .wrap{ max-width:720px; margin:0 auto; padding-bottom:56px; }
+
+  button, select, input, textarea{ font:inherit; color:inherit; }
+
+  /* Header */
+  header{ padding:clamp(44px, 9vw, 88px) 0 clamp(28px, 5vw, 44px); }
+
+  h1{
+    font-size:clamp(2.6rem, 9vw, 4.2rem);
+    font-weight:600;
+    letter-spacing:-0.045em;
+    line-height:0.98;
+    margin-bottom:14px;
+  }
+
+  .subtitle{
+    font-size:clamp(1rem, 2vw, 1.1rem);
+    color:var(--muted);
+    max-width:36ch;
+  }
+
+  /* Error banner */
+  #errorBanner{
+    display:none;
+    padding:14px 16px;
+    margin-bottom:16px;
+    border:1px solid var(--danger);
+    border-radius:10px;
+    background:#1b1312;
+    color:#f1b7b1;
+    font-size:0.92rem;
+    white-space:pre-wrap;
+  }
+
+  /* Panels */
+  .block{
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:clamp(20px, 4vw, 28px);
+    margin-bottom:16px;
+  }
+
+  .block h2{
+    font-size:1.3rem;
+    font-weight:600;
+    letter-spacing:-0.015em;
+    line-height:1.2;
+    margin-bottom:18px;
+  }
+
+  label.field-label{
+    display:block;
+    font-size:0.88rem;
+    color:var(--muted);
+    margin-bottom:8px;
+  }
+
+  select, input[type="text"], textarea{
+    width:100%;
+    padding:12px 14px;
+    font-size:1rem;
+    background:var(--bg);
+    color:var(--text);
+    border:1px solid var(--line);
+    border-radius:10px;
+    outline:none;
+    transition:border-color 0.2s ease;
+  }
+
+  select:focus, input[type="text"]:focus, textarea:focus{ border-color:var(--amber); }
+
+  select{
+    appearance:none;
+    -webkit-appearance:none;
+    padding-right:40px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238d9097' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;
+    background-position:right 14px center;
+  }
+
+  textarea::placeholder, input::placeholder{ color:var(--muted); opacity:0.8; }
+
+  textarea{ resize:vertical; line-height:1.65; }
+
+  /* Record */
+  #startBtn{
+    width:100%;
+    margin-top:16px;
+    padding:16px 22px;
+    background:var(--amber);
+    color:#16130c;
+    border:1px solid var(--amber);
+    border-radius:10px;
+    font-weight:600;
+    font-size:1.05rem;
+    cursor:pointer;
+    transition:filter 0.2s ease, transform 0.2s ease, background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  }
+  #startBtn:hover{ filter:brightness(1.08); transform:translateY(-1px); }
+  #startBtn:active{ transform:none; }
+  #startBtn.on{
+    background:transparent;
+    color:var(--danger);
+    border-color:var(--danger);
+  }
+  #startBtn:disabled{ opacity:0.45; cursor:not-allowed; transform:none; filter:none; }
+
+  #status{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-top:14px;
+    min-height:22px;
+    font-size:0.92rem;
+    color:var(--muted);
+  }
+  #status::first-letter{ text-transform:uppercase; }
+  #status::before{
+    content:'';
+    flex:0 0 auto;
+    width:7px;
+    height:7px;
+    border-radius:50%;
+    background:var(--line);
+  }
+  #startBtn.on + #status::before{
+    background:var(--danger);
+    animation:rec 1.4s ease-in-out infinite;
+  }
+  @keyframes rec{ 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+  /* Text areas */
+  #transcript{ min-height:280px; font-size:1.02rem; }
+
+  /* Buttons */
+  .actions{ display:flex; gap:10px; margin-top:12px; }
+
+  .actions button{
+    flex:1;
+    padding:12px 16px;
+    background:transparent;
+    color:var(--text);
+    border:1px solid var(--line);
+    border-radius:10px;
+    font-weight:500;
+    font-size:0.97rem;
+    cursor:pointer;
+    transition:background 0.2s ease, border-color 0.2s ease;
+  }
+  .actions button:hover{
+    background:var(--surface);
+    border-color:#3a3d43;
+  }
+
+
+  .divider{ height:1px; background:var(--line); margin:22px 0 18px; }
+
+  button:focus-visible, select:focus-visible, a:focus-visible{
+    outline:2px solid var(--amber);
+    outline-offset:3px;
+  }
+
+  @media (max-width:520px){
+    .actions{ flex-direction:column; }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition:none !important; animation:none !important; }
+  }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+
+<body>
+<div class="wrap">
+
+<header>
+  <h1>Transcript</h1>
+  <p class="subtitle">Trasforma la tua voce in testo, direttamente dal browser.</p>
+</header>
+
+<div id="errorBanner"></div>
+
+<div class="block">
+  <h2>Registra</h2>
+  <label class="field-label" for="lang">Lingua</label>
+  <select id="lang">
+    <option value="it-IT">Italiano</option>
+    <option value="en-US">Inglese (US)</option>
+    <option value="en-GB">Inglese (UK)</option>
+    <option value="fr-FR">Francese</option>
+    <option value="es-ES">Spagnolo</option>
+    <option value="de-DE">Tedesco</option>
+    <option value="pt-PT">Portoghese</option>
+  </select>
+
+  <button id="startBtn">Avvia</button>
+  <div id="status">non attivo</div>
+</div>
+
+<div class="block">
+  <h2>Trascrizione</h2>
+  <textarea id="transcript" placeholder="Il testo apparirà qui…"></textarea>
+
+  <div class="actions">
+    <button id="copyBtn">Copia</button>
+    <button id="clearBtn">Svuota</button>
+  </div>
+
+  <div class="divider"></div>
+
+  <label class="field-label" for="fileName">Nome del file</label>
+  <input type="text" id="fileName" placeholder="es. verbale-riunione">
+
+  <div class="actions">
+    <button id="exportDocBtn">Scarica .docx</button>
+    <button id="exportTxtBtn">Scarica .txt</button>
+  </div>
+</div>
+
+<script>
+function showError(msg){
+  var box = document.getElementById('errorBanner');
+  box.style.display = 'block';
+  box.textContent = msg;
+}
+
+window.onerror = function(msg, url, line){
+  showError('Errore script: ' + msg + ' (riga ' + line + ')');
+};
+
+try {
+
+  var startBtn = document.getElementById('startBtn');
+  var statusEl = document.getElementById('status');
+  var transcriptEl = document.getElementById('transcript');
+  var langSelect = document.getElementById('lang');
+
+  var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if (!SR) {
+    showError('Questo browser non supporta il riconoscimento vocale (SpeechRecognition non trovato). Serve Chrome o Edge aggiornati.');
+    startBtn.disabled = true;
+    statusEl.textContent = 'Non disponibile su questo browser.';
+  }
+
+  var recognition = null;
+  var listening = false;
+  var finalText = '';
+
+  var restartTimer = null;
+
+  function buildRecognition(){
+    var r = new SR();
+    r.lang = langSelect.value;
+    // continuous=false: ogni pausa chiude la sessione (suono di sistema a ogni riavvio),
+    // ma è l'unica modalità stabile su Android Chrome: continuous=true duplica il testo.
+    r.continuous = false;
+    r.interimResults = true;
+
+    var committedCount = 0;
+
+    r.onstart = function(){
+      statusEl.textContent = 'in ascolto — parla pure';
+    };
+
+    r.onresult = function(event){
+      var interim = '';
+      for (var i = 0; i < event.results.length; i++){
+        var t = event.results[i][0].transcript;
+        if (event.results[i].isFinal){
+          if (i >= committedCount) {
+            finalText += t.trim() + ' ';
+            committedCount = i + 1;
+          }
+        } else {
+          interim += t;
+        }
+      }
+      transcriptEl.value = finalText + interim;
+      transcriptEl.scrollTop = transcriptEl.scrollHeight;
+    };
+
+    r.onerror = function(event){
+      if (event.error === 'no-speech' || event.error === 'aborted'){
+        return; // gestito da onend, che riavvia
+      }
+      if (event.error === 'not-allowed' || event.error === 'permission-denied'){
+        showError('Permesso microfono negato. Vai nelle impostazioni del sito in Chrome (icona lucchetto vicino all\'indirizzo) e imposta Microfono su "Consenti", poi ricarica la pagina.');
+        stopListening();
+      } else {
+        statusEl.textContent = 'Interruzione momentanea (' + event.error + '), riprendo...';
+      }
+    };
+
+    r.onend = function(){
+      if (listening){
+        clearTimeout(restartTimer);
+        restartTimer = setTimeout(function(){
+          try {
+            recognition = buildRecognition();
+            recognition.start();
+          } catch(e){
+            showError('Impossibile riavviare: ' + e.message);
+            stopListening();
+          }
+        }, 150);
+      }
+    };
+
+    return r;
+  }
+
+  function startListening(){
+    try {
+      recognition = buildRecognition();
+      recognition.start();
+      listening = true;
+      startBtn.textContent = 'Ferma';
+      startBtn.classList.add('on');
+      statusEl.textContent = 'avvio in corso...';
+    } catch(e){
+      showError('Impossibile avviare: ' + e.message);
+    }
+  }
+
+  function stopListening(){
+    listening = false;
+    if (recognition){
+      try { recognition.stop(); } catch(e){}
+    }
+    startBtn.textContent = 'Avvia';
+    startBtn.classList.remove('on');
+    statusEl.textContent = 'fermato';
+  }
+
+  startBtn.addEventListener('click', function(){
+    if (!SR) return;
+    if (listening){
+      stopListening();
+    } else {
+      startListening();
+    }
+  });
+
+  document.getElementById('copyBtn').addEventListener('click', function(){
+    transcriptEl.select();
+    try {
+      document.execCommand('copy');
+      statusEl.textContent = 'copiato';
+    } catch(e){
+      navigator.clipboard.writeText(transcriptEl.value).then(function(){
+        statusEl.textContent = 'copiato';
+      }).catch(function(){
+        showError('Copia non riuscita: seleziona il testo manualmente.');
+      });
+    }
+  });
+
+  document.getElementById('clearBtn').addEventListener('click', function(){
+    finalText = '';
+    transcriptEl.value = '';
+  });
+
+  function getChosenName(){
+    var raw = document.getElementById('fileName').value.trim();
+    if (!raw) raw = 'Trascrizione ' + new Date().toISOString().slice(0,10);
+    // rimuove caratteri non validi nei nomi file
+    return raw.replace(/[\\/:*?"<>|]/g, '-');
+  }
+
+  function triggerDownload(blob, filename){
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(function(){ URL.revokeObjectURL(url); }, 1000);
+  }
+
+  function exportTextFile(text, filename){
+    if (!text.trim()){
+      showError('Non c\'è ancora testo da esportare.');
+      return;
+    }
+    var blob = new Blob(['\ufeff', text], {type: 'text/plain;charset=utf-8'});
+    triggerDownload(blob, filename + '.txt');
+  }
+
+  function exportDocFile(text, filename){
+    if (!text.trim()){
+      showError('Non c\'è ancora testo da esportare.');
+      return;
+    }
+    if (typeof JSZip === 'undefined'){
+      showError('Libreria per generare il documento non caricata (serve connessione internet). Riprova, oppure usa "Esporta .txt".');
+      return;
+    }
+
+    var lines = text.split('\n');
+
+    function escXml(s){
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    var titleXml = '<w:p><w:pPr><w:rPr><w:b/><w:sz w:val="32"/></w:rPr></w:pPr>' +
+      '<w:r><w:rPr><w:b/><w:sz w:val="32"/></w:rPr><w:t xml:space="preserve">' + escXml(filename) + '</w:t></w:r></w:p>';
+
+    var bodyXml = lines.map(function(line){
+      var t = line.trim() ? escXml(line) : '';
+      return '<w:p><w:r><w:rPr><w:b/></w:rPr><w:t xml:space="preserve">' + t + '</w:t></w:r></w:p>';
+    }).join('');
+
+    var documentXml =
+      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main">' +
+      '<w:body>' + titleXml + bodyXml +
+      '<w:sectPr><w:pgSz w:w="11906" w:h="16838"/><w:pgMar w:top="1417" w:right="1417" w:bottom="1417" w:left="1417"/></w:sectPr>' +
+      '</w:body></w:document>';
+
+    var contentTypesXml =
+      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">' +
+      '<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>' +
+      '<Default Extension="xml" ContentType="application/xml"/>' +
+      '<Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/>' +
+      '</Types>';
+
+    var relsXml =
+      '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>' +
+      '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">' +
+      '<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/>' +
+      '</Relationships>';
+
+    var zip = new JSZip();
+    zip.file('[Content_Types].xml', contentTypesXml);
+    zip.folder('_rels').file('.rels', relsXml);
+    zip.folder('word').file('document.xml', documentXml);
+
+    zip.generateAsync({type:'blob', mimeType:'application/vnd.openxmlformats-officedocument.wordprocessingml.document'})
+      .then(function(blob){
+        triggerDownload(blob, filename + '.docx');
+        statusEl.textContent = 'esportato: ' + filename + '.docx';
+      })
+      .catch(function(e){
+        showError('Errore nella generazione del documento: ' + e.message);
+      });
+  }
+
+  document.getElementById('exportTxtBtn').addEventListener('click', function(){
+    exportTextFile(transcriptEl.value, getChosenName());
+  });
+
+  document.getElementById('exportDocBtn').addEventListener('click', function(){
+    exportDocFile(transcriptEl.value, getChosenName());
+  });
+
+} catch(e){
+  showError('Errore di inizializzazione: ' + e.message);
+}
+</script>
+
+</div>
+</body>
+</html>
